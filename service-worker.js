@@ -1,5 +1,5 @@
 // Service Worker for PWA
-const CACHE_NAME = 'pwa-app-v2';
+const CACHE_NAME = 'pwa-app-v3';
 const urlsToCache = [
     '/',
     '/index.html',
@@ -51,6 +51,9 @@ self.addEventListener('activate', event => {
 
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', event => {
+    // iOS 12 compatibility: Handle both relative and absolute URLs
+    const requestUrl = new URL(event.request.url);
+
     event.respondWith(
         caches.match(event.request)
             .then(response => {
@@ -59,33 +62,60 @@ self.addEventListener('fetch', event => {
                     return response;
                 }
 
-                // Clone the request
-                const fetchRequest = event.request.clone();
+                // iOS 12 workaround: Try matching by pathname for same-origin requests
+                if (requestUrl.origin === location.origin) {
+                    return caches.match(requestUrl.pathname).then(pathResponse => {
+                        if (pathResponse) {
+                            return pathResponse;
+                        }
 
-                return fetch(fetchRequest).then(response => {
-                    // Check if valid response
-                    if (!response || response.status !== 200 || response.type !== 'basic') {
-                        return response;
-                    }
+                        // Try fetching from network
+                        return fetchAndCache(event.request);
+                    });
+                }
 
-                    // Clone the response
-                    const responseToCache = response.clone();
-
-                    // Cache the new response
-                    caches.open(CACHE_NAME)
-                        .then(cache => {
-                            cache.put(event.request, responseToCache);
-                        });
-
-                    return response;
-                });
+                // For cross-origin requests, just fetch
+                return fetch(event.request);
             })
-            .catch(() => {
+            .catch(error => {
+                console.log('Fetch failed; returning offline page instead.', error);
                 // Return a custom offline page if available
                 return caches.match('/index.html');
             })
     );
 });
+
+// Helper function to fetch and cache
+function fetchAndCache(request) {
+    return fetch(request).then(response => {
+        // Check if valid response
+        if (!response || response.status !== 200) {
+            return response;
+        }
+
+        // Don't cache non-GET requests or responses with specific types
+        if (request.method !== 'GET') {
+            return response;
+        }
+
+        // Clone the response
+        const responseToCache = response.clone();
+
+        // Cache the new response
+        caches.open(CACHE_NAME)
+            .then(cache => {
+                cache.put(request, responseToCache);
+            })
+            .catch(err => {
+                console.log('Cache put failed:', err);
+            });
+
+        return response;
+    }).catch(error => {
+        console.log('Network fetch failed:', error);
+        throw error;
+    });
+}
 
 // Background sync (if supported)
 self.addEventListener('sync', event => {
