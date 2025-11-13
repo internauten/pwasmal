@@ -1,22 +1,21 @@
 // Service Worker for PWA
-const CACHE_NAME = 'pwa-app-v3';
+const CACHE_NAME = 'pwa-app-v4';
 const urlsToCache = [
-    '/',
-    '/index.html',
-    '/styles.css',
-    '/app.js',
-    '/manifest.json',
-    '/icons/icon-72.png',
-    '/icons/icon-96.png',
-    '/icons/icon-128.png',
-    '/icons/icon-144.png',
-    '/icons/icon-152.png',
-    '/icons/icon-167.png',
-    '/icons/icon-180.png',
-    '/icons/icon-192.png',
-    '/icons/icon-384.png',
-    '/icons/icon-512.png',
-    '/gong1.mp3'
+    './index.html',
+    './styles.css',
+    './app.js',
+    './manifest.json',
+    './gong1.mp3',
+    './icons/icon-72.png',
+    './icons/icon-96.png',
+    './icons/icon-128.png',
+    './icons/icon-144.png',
+    './icons/icon-152.png',
+    './icons/icon-167.png',
+    './icons/icon-180.png',
+    './icons/icon-192.png',
+    './icons/icon-384.png',
+    './icons/icon-512.png'
 ];
 
 // Install event - cache resources
@@ -26,9 +25,21 @@ self.addEventListener('install', event => {
         caches.open(CACHE_NAME)
             .then(cache => {
                 console.log('Service Worker: Caching files');
-                return cache.addAll(urlsToCache);
+                // iOS 12 fix: Cache files individually instead of using addAll
+                const cachePromises = urlsToCache.map(url => {
+                    return cache.add(url).catch(err => {
+                        console.log('Failed to cache:', url, err);
+                    });
+                });
+                return Promise.all(cachePromises);
             })
-            .then(() => self.skipWaiting())
+            .then(() => {
+                console.log('Service Worker: All files cached');
+                return self.skipWaiting();
+            })
+            .catch(err => {
+                console.log('Service Worker: Install failed', err);
+            })
     );
 });
 
@@ -51,71 +62,35 @@ self.addEventListener('activate', event => {
 
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', event => {
-    // iOS 12 compatibility: Handle both relative and absolute URLs
-    const requestUrl = new URL(event.request.url);
-
     event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                // Cache hit - return response
+        caches.open(CACHE_NAME).then(cache => {
+            return cache.match(event.request).then(response => {
                 if (response) {
+                    console.log('Cache hit:', event.request.url);
                     return response;
                 }
 
-                // iOS 12 workaround: Try matching by pathname for same-origin requests
-                if (requestUrl.origin === location.origin) {
-                    return caches.match(requestUrl.pathname).then(pathResponse => {
-                        if (pathResponse) {
-                            return pathResponse;
-                        }
-
-                        // Try fetching from network
-                        return fetchAndCache(event.request);
-                    });
-                }
-
-                // For cross-origin requests, just fetch
-                return fetch(event.request);
-            })
-            .catch(error => {
-                console.log('Fetch failed; returning offline page instead.', error);
-                // Return a custom offline page if available
-                return caches.match('/index.html');
-            })
+                console.log('Fetching from network:', event.request.url);
+                return fetch(event.request).then(networkResponse => {
+                    // Only cache successful GET requests
+                    if (event.request.method === 'GET' && networkResponse && networkResponse.status === 200) {
+                        cache.put(event.request, networkResponse.clone()).catch(err => {
+                            console.log('Cache put failed:', err);
+                        });
+                    }
+                    return networkResponse;
+                }).catch(err => {
+                    console.log('Fetch failed:', event.request.url, err);
+                    // Return index.html for navigation requests when offline
+                    if (event.request.mode === 'navigate') {
+                        return cache.match('./index.html');
+                    }
+                    throw err;
+                });
+            });
+        })
     );
 });
-
-// Helper function to fetch and cache
-function fetchAndCache(request) {
-    return fetch(request).then(response => {
-        // Check if valid response
-        if (!response || response.status !== 200) {
-            return response;
-        }
-
-        // Don't cache non-GET requests or responses with specific types
-        if (request.method !== 'GET') {
-            return response;
-        }
-
-        // Clone the response
-        const responseToCache = response.clone();
-
-        // Cache the new response
-        caches.open(CACHE_NAME)
-            .then(cache => {
-                cache.put(request, responseToCache);
-            })
-            .catch(err => {
-                console.log('Cache put failed:', err);
-            });
-
-        return response;
-    }).catch(error => {
-        console.log('Network fetch failed:', error);
-        throw error;
-    });
-}
 
 // Background sync (if supported)
 self.addEventListener('sync', event => {
