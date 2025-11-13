@@ -31,6 +31,23 @@ function initApp() {
     setupConnectivityListeners();
 
     console.log('PWA App initialized');
+
+    // Play gong sound when everything is loaded (only in PWA mode or after user interaction)
+    window.addEventListener('load', () => {
+        if (isStandalone) {
+            // In PWA mode, try to play immediately
+            playGong();
+        } else {
+            // In browser mode, play on first user interaction
+            const playOnInteraction = () => {
+                playGong();
+                document.removeEventListener('click', playOnInteraction);
+                document.removeEventListener('touchstart', playOnInteraction);
+            };
+            document.addEventListener('click', playOnInteraction, { once: true });
+            document.addEventListener('touchstart', playOnInteraction, { once: true });
+        }
+    });
 }
 
 // Service Worker Registration
@@ -219,6 +236,15 @@ function showNotification() {
             icon: 'icons/icon-192.png'
         });
     }
+}
+
+// Play gong sound
+function playGong() {
+    const audio = new Audio('gong1.mp3');
+    audio.play().catch(error => {
+        console.error('Error playing gong:', error);
+        alert('Could not play gong. Make sure gong1.mp3 is in the same folder.');
+    });
 }
 
 // Clear cache
