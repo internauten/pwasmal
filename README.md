@@ -2,6 +2,8 @@
 
 A Progressive Web App compatible with iOS 12+ and Windows.
 
+<https://internauten.github.io/pwasmal/>
+
 ## Features
 
 - ✅ **Offline Support**: Works without internet connection using Service Workers

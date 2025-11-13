@@ -2,6 +2,28 @@
 let deferredPrompt;
 let isStandalone = false;
 
+// Debug function to show messages on screen
+function showDebugMessage(message) {
+    console.log(message);
+
+    // Create or get debug div
+    let debugDiv = document.getElementById('debug-messages');
+    if (!debugDiv) {
+        debugDiv = document.createElement('div');
+        debugDiv.id = 'debug-messages';
+        debugDiv.style.cssText = 'position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.8); color: #0f0; padding: 10px; font-size: 12px; max-height: 150px; overflow-y: auto; z-index: 9999; font-family: monospace;';
+        document.body.appendChild(debugDiv);
+    }
+
+    const time = new Date().toLocaleTimeString();
+    const msgEl = document.createElement('div');
+    msgEl.textContent = `[${time}] ${message}`;
+    debugDiv.appendChild(msgEl);
+
+    // Auto-scroll to bottom
+    debugDiv.scrollTop = debugDiv.scrollHeight;
+}
+
 // Check if app is running in standalone mode
 if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
     isStandalone = true;
@@ -243,14 +265,18 @@ let audioContext = null;
 let audioBuffer = null;
 
 function playGong() {
+    showDebugMessage('playGong() called');
+
     // iOS 12 compatibility: Use Web Audio API instead of Audio element
     if (!audioContext) {
+        showDebugMessage('Creating AudioContext...');
         // Create AudioContext (iOS 12 requires webkitAudioContext)
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (AudioContextClass) {
             audioContext = new AudioContextClass();
+            showDebugMessage('AudioContext created: ' + audioContext.state);
         } else {
-            console.error('Web Audio API not supported');
+            showDebugMessage('ERROR: Web Audio API not supported');
             fallbackPlayAudio();
             return;
         }
@@ -258,49 +284,95 @@ function playGong() {
 
     // Resume audio context if suspended (iOS requirement)
     if (audioContext.state === 'suspended') {
+        showDebugMessage('AudioContext suspended, resuming...');
         audioContext.resume().then(() => {
+            showDebugMessage('AudioContext resumed');
             playAudioBuffer();
         }).catch(err => {
-            console.error('Failed to resume audio context:', err);
+            showDebugMessage('ERROR resuming context: ' + err.message);
             fallbackPlayAudio();
         });
     } else {
+        showDebugMessage('AudioContext state: ' + audioContext.state);
         playAudioBuffer();
     }
 }
 
 function playAudioBuffer() {
     if (audioBuffer) {
+        showDebugMessage('Using cached audio buffer');
         // Play the already loaded buffer
         playSound(audioBuffer);
     } else {
+        showDebugMessage('Fetching gong1.mp3...');
         // Load the audio file
         fetch('gong1.mp3')
-            .then(response => response.arrayBuffer())
-            .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+            .then(response => {
+                showDebugMessage('Fetch response: ' + response.status);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch audio file');
+                }
+                return response.arrayBuffer();
+            })
+            .then(arrayBuffer => {
+                showDebugMessage('Got arrayBuffer, size: ' + arrayBuffer.byteLength);
+                // iOS 12 compatibility: decodeAudioData might use callbacks instead of promises
+                return new Promise((resolve, reject) => {
+                    const decodePromise = audioContext.decodeAudioData(
+                        arrayBuffer,
+                        // Success callback (for older browsers)
+                        (decodedBuffer) => {
+                            showDebugMessage('Audio decoded (callback)');
+                            resolve(decodedBuffer);
+                        },
+                        // Error callback (for older browsers)
+                        (error) => {
+                            showDebugMessage('Decode error (callback): ' + error);
+                            reject(error);
+                        }
+                    );
+
+                    // If it returns a promise (newer browsers), use that
+                    if (decodePromise && decodePromise.then) {
+                        showDebugMessage('Using promise-based decode');
+                        decodePromise.then(resolve).catch(reject);
+                    }
+                });
+            })
             .then(decodedBuffer => {
                 audioBuffer = decodedBuffer;
+                showDebugMessage('Audio buffer loaded successfully');
                 playSound(audioBuffer);
             })
             .catch(error => {
-                console.error('Error loading audio:', error);
+                showDebugMessage('ERROR loading audio: ' + error.message);
                 fallbackPlayAudio();
             });
     }
 }
 
 function playSound(buffer) {
-    const source = audioContext.createBufferSource();
-    source.buffer = buffer;
-    source.connect(audioContext.destination);
-    source.start(0);
+    try {
+        showDebugMessage('Creating audio source...');
+        const source = audioContext.createBufferSource();
+        source.buffer = buffer;
+        source.connect(audioContext.destination);
+        source.start(0);
+        showDebugMessage('Sound playing!');
+    } catch (error) {
+        showDebugMessage('ERROR playing sound: ' + error.message);
+        fallbackPlayAudio();
+    }
 }
 
 // Fallback for browsers that don't support Web Audio API
 function fallbackPlayAudio() {
+    showDebugMessage('Using fallback Audio element');
     const audio = new Audio('gong1.mp3');
-    audio.play().catch(error => {
-        console.error('Error playing gong:', error);
+    audio.play().then(() => {
+        showDebugMessage('Fallback audio playing');
+    }).catch(error => {
+        showDebugMessage('ERROR fallback audio: ' + error.message);
     });
 }
 
