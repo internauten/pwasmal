@@ -239,11 +239,68 @@ function showNotification() {
 }
 
 // Play gong sound
+let audioContext = null;
+let audioBuffer = null;
+
 function playGong() {
+    // iOS 12 compatibility: Use Web Audio API instead of Audio element
+    if (!audioContext) {
+        // Create AudioContext (iOS 12 requires webkitAudioContext)
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+            audioContext = new AudioContextClass();
+        } else {
+            console.error('Web Audio API not supported');
+            fallbackPlayAudio();
+            return;
+        }
+    }
+
+    // Resume audio context if suspended (iOS requirement)
+    if (audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+            playAudioBuffer();
+        }).catch(err => {
+            console.error('Failed to resume audio context:', err);
+            fallbackPlayAudio();
+        });
+    } else {
+        playAudioBuffer();
+    }
+}
+
+function playAudioBuffer() {
+    if (audioBuffer) {
+        // Play the already loaded buffer
+        playSound(audioBuffer);
+    } else {
+        // Load the audio file
+        fetch('gong1.mp3')
+            .then(response => response.arrayBuffer())
+            .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+            .then(decodedBuffer => {
+                audioBuffer = decodedBuffer;
+                playSound(audioBuffer);
+            })
+            .catch(error => {
+                console.error('Error loading audio:', error);
+                fallbackPlayAudio();
+            });
+    }
+}
+
+function playSound(buffer) {
+    const source = audioContext.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioContext.destination);
+    source.start(0);
+}
+
+// Fallback for browsers that don't support Web Audio API
+function fallbackPlayAudio() {
     const audio = new Audio('gong1.mp3');
     audio.play().catch(error => {
         console.error('Error playing gong:', error);
-        alert('Could not play gong. Make sure gong1.mp3 is in the same folder.' + error);
     });
 }
 
