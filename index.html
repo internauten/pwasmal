@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="PWA App" />
+    <meta name="theme-color" content="#2196F3" />
+    <meta
+      name="description"
+      content="A Progressive Web App compatible with iOS 12 and Windows"
+    />
+
+    <title>PWA App</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="icons/icon-192.png" />
+
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="icons/icon-152.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png" />
+
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>📱 PWA App</h1>
+        <p class="subtitle">Progressive Web App</p>
+      </header>
+
+      <main>
+        <section class="status-card">
+          <h2>Installation Status</h2>
+          <div id="install-status" class="status-info">
+            <p>Checking installation status...</p>
+          </div>
+          <button
+            id="install-button"
+            class="btn btn-primary"
+            style="display: none"
+          >
+            Install App
+          </button>
+        </section>
+
+        <section class="feature-card">
+          <h2>Device Information</h2>
+          <div id="device-info" class="info-grid">
+            <div class="info-item">
+              <span class="label">Platform:</span>
+              <span id="platform">Loading...</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Online Status:</span>
+              <span id="online-status">Loading...</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Screen Size:</span>
+              <span id="screen-size">Loading...</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="feature-card">
+          <h2>Features</h2>
+          <ul class="feature-list">
+            <li>✅ Works offline</li>
+            <li>✅ Installable on home screen</li>
+            <li>✅ iOS 12+ compatible</li>
+            <li>✅ Windows compatible</li>
+            <li>✅ Responsive design</li>
+            <li>✅ Fast loading with caching</li>
+          </ul>
+        </section>
+
+        <section class="action-card">
+          <h2>Quick Actions</h2>
+          <div class="button-group">
+            <button class="btn btn-secondary" onclick="testNotification()">
+              🔔 Test Notification
+            </button>
+            <button class="btn btn-secondary" onclick="clearCache()">
+              🗑️ Clear Cache
+            </button>
+            <button class="btn btn-secondary" onclick="refreshData()">
+              🔄 Refresh Data
+            </button>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <p>&copy; 2025 PWA App. Built for iOS 12+ and Windows.</p>
+      </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,295 @@
+/* Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --primary-color: #2196f3;
+  --primary-dark: #1976d2;
+  --secondary-color: #4caf50;
+  --background: #f5f5f5;
+  --card-background: #ffffff;
+  --text-primary: #212121;
+  --text-secondary: #757575;
+  --border-color: #e0e0e0;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--background);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Container */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+header {
+  text-align: center;
+  padding: 40px 20px;
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--primary-dark)
+  );
+  color: white;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  box-shadow: var(--shadow);
+}
+
+header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+/* Main Content */
+main {
+  flex: 1;
+}
+
+/* Cards */
+.status-card,
+.feature-card,
+.action-card {
+  background: var(--card-background);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.status-card:hover,
+.feature-card:hover,
+.action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.status-card h2,
+.feature-card h2,
+.action-card h2 {
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Status Info */
+.status-info {
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.status-info p {
+  margin: 8px 0;
+  color: var(--text-secondary);
+}
+
+.status-info.installed {
+  background: #e8f5e9;
+  border-left: 4px solid var(--secondary-color);
+}
+
+.status-info.not-installed {
+  background: #fff3e0;
+  border-left: 4px solid #ff9800;
+}
+
+/* Info Grid */
+.info-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+#platform,
+#online-status,
+#screen-size {
+  color: var(--text-secondary);
+}
+
+.online {
+  color: var(--secondary-color) !important;
+  font-weight: 600;
+}
+
+.offline {
+  color: #f44336 !important;
+  font-weight: 600;
+}
+
+/* Feature List */
+.feature-list {
+  list-style: none;
+  padding: 0;
+}
+
+.feature-list li {
+  padding: 12px;
+  margin-bottom: 8px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+/* Buttons */
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+  display: inline-block;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-primary {
+  background: var(--primary-color);
+  color: white;
+  width: 100%;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: white;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+  flex: 1;
+}
+
+.btn-secondary:hover {
+  background: var(--primary-color);
+  color: white;
+}
+
+.button-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 20px;
+  margin-top: 40px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 12px;
+  }
+
+  header h1 {
+    font-size: 2rem;
+  }
+
+  .status-card,
+  .feature-card,
+  .action-card {
+    padding: 16px;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .btn-secondary {
+    width: 100%;
+  }
+}
+
+/* iOS Specific Adjustments */
+@supports (-webkit-touch-callout: none) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.status-card,
+.feature-card,
+.action-card {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Loading State */
+.loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--primary-color);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

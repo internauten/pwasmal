@@ -1,0 +1,17 @@
+{
+  "name": "pwa-app",
+  "version": "1.0.0",
+  "description": "A Progressive Web App compatible with iOS 12 and Windows",
+  "scripts": {
+    "start": "npx http-server -p 8000",
+    "serve": "python -m http.server 8000"
+  },
+  "keywords": [
+    "pwa",
+    "progressive-web-app",
+    "ios",
+    "windows"
+  ],
+  "author": "",
+  "license": "MIT"
+}
