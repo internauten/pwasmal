@@ -243,7 +243,7 @@ function playGong() {
     const audio = new Audio('gong1.mp3');
     audio.play().catch(error => {
         console.error('Error playing gong:', error);
-        alert('Could not play gong. Make sure gong1.mp3 is in the same folder.');
+        alert('Could not play gong. Make sure gong1.mp3 is in the same folder.' + error);
     });
 }
 
