@@ -88,6 +88,21 @@
         </section>
 
         <section class="action-card">
+          <h2>Schedule Gong</h2>
+          <div class="schedule-controls">
+            <label for="gong-time">Play gong at:</label>
+            <input type="time" id="gong-time" class="time-input" />
+            <button class="btn btn-primary" onclick="scheduleGong()">
+              ⏰ Schedule
+            </button>
+            <button class="btn btn-secondary" onclick="clearSchedule()">
+              ❌ Clear
+            </button>
+          </div>
+          <div id="schedule-status" class="schedule-status"></div>
+        </section>
+
+        <section class="action-card">
           <h2>Quick Actions</h2>
           <div class="button-group">
             <button class="btn btn-secondary" onclick="playGong()">

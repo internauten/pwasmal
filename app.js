@@ -52,6 +52,9 @@ function initApp() {
     // Setup online/offline listeners
     setupConnectivityListeners();
 
+    // Restore scheduled gong time
+    restoreSchedule();
+
     console.log('PWA App initialized');
 
     // Play gong sound when everything is loaded (only in PWA mode or after user interaction)
@@ -263,6 +266,8 @@ function showNotification() {
 // Play gong sound
 let audioContext = null;
 let audioBuffer = null;
+let gongScheduleInterval = null;
+let scheduledTime = null;
 
 function playGong() {
     showDebugMessage('playGong() called');
@@ -374,6 +379,99 @@ function fallbackPlayAudio() {
     }).catch(error => {
         showDebugMessage('ERROR fallback audio: ' + error.message);
     });
+}
+
+// Schedule gong to play at specific time
+function scheduleGong() {
+    const timeInput = document.getElementById('gong-time');
+    const statusDiv = document.getElementById('schedule-status');
+
+    if (!timeInput.value) {
+        alert('Please select a time first');
+        return;
+    }
+
+    // Clear any existing schedule
+    clearSchedule();
+
+    scheduledTime = timeInput.value;
+
+    // Save to localStorage
+    localStorage.setItem('gongScheduledTime', scheduledTime);
+
+    // Update status
+    updateScheduleStatus();
+
+    // Check every minute if it's time to play
+    gongScheduleInterval = setInterval(checkScheduledTime, 60000);
+
+    // Also check immediately
+    checkScheduledTime();
+
+    showDebugMessage('Gong scheduled for ' + scheduledTime);
+}
+
+function checkScheduledTime() {
+    if (!scheduledTime) return;
+
+    const now = new Date();
+    const currentTime = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+    showDebugMessage('Checking time: ' + currentTime + ' vs ' + scheduledTime);
+
+    if (currentTime === scheduledTime) {
+        showDebugMessage('Time match! Playing gong...');
+        playGong();
+
+        // Show notification if supported
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('Gong Time!', {
+                body: 'Your scheduled gong is playing',
+                icon: 'icons/icon-192.png'
+            });
+        }
+    }
+}
+
+function clearSchedule() {
+    if (gongScheduleInterval) {
+        clearInterval(gongScheduleInterval);
+        gongScheduleInterval = null;
+    }
+
+    scheduledTime = null;
+    localStorage.removeItem('gongScheduledTime');
+
+    updateScheduleStatus();
+    showDebugMessage('Schedule cleared');
+}
+
+function updateScheduleStatus() {
+    const statusDiv = document.getElementById('schedule-status');
+    if (!statusDiv) return;
+
+    if (scheduledTime) {
+        statusDiv.textContent = `⏰ Gong scheduled for ${scheduledTime} daily`;
+        statusDiv.className = 'schedule-status active';
+    } else {
+        statusDiv.textContent = 'No schedule set';
+        statusDiv.className = 'schedule-status';
+    }
+}
+
+// Restore schedule on page load
+function restoreSchedule() {
+    const savedTime = localStorage.getItem('gongScheduledTime');
+    if (savedTime) {
+        scheduledTime = savedTime;
+        const timeInput = document.getElementById('gong-time');
+        if (timeInput) {
+            timeInput.value = savedTime;
+        }
+        updateScheduleStatus();
+        gongScheduleInterval = setInterval(checkScheduledTime, 60000);
+        showDebugMessage('Restored schedule: ' + savedTime);
+    }
 }
 
 // Clear cache
